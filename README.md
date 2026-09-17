@@ -18,8 +18,8 @@ go run ./cmd/scheduler
 
 ## Progress
 
-- [ ] 1. Variables
-- [ ] 2. Constants + formatting
+- [x] 1. Variables
+- [x] 2. Constants + formatting
 - [ ] 3. Conditionals
 - [ ] 4. Functions
 - [ ] 5. Structs
