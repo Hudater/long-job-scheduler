@@ -39,7 +39,7 @@ func main() {
 	if workerDurationBool {
 		fmt.Println(workerDurationStr)
 	} else {
-		fmt.Println("Error: Worker duration could not be found. Workername must be non-empty string and Interval for worker must be non-zero positive integer")
+		fmt.Println("Error: Worker duration could not be found. Interval must be non-zero positive integer")
 	}
 }
 
