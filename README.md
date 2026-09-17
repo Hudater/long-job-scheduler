@@ -20,8 +20,8 @@ go run ./cmd/scheduler
 
 - [x] 1. Variables
 - [x] 2. Constants + formatting
-- [ ] 3. Conditionals
-- [ ] 4. Functions
+- [x] 3. Conditionals
+- [x] 4. Functions
 - [ ] 5. Structs
 - [ ] 6. Interfaces
 - [ ] 7. Errors
