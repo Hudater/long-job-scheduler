@@ -13,7 +13,6 @@ const (
 
 func main() {
 	var intervalSeconds int
-	// var jobStatus string
 	workerName := "WorkerOne"
 
 	possibleStatus := []string{
@@ -24,15 +23,13 @@ func main() {
 	
 	// random values to proceed
 	intervalSeconds = rand.IntN(100)
-	// fmt.Printf("\nInterval now: %v\n", intervalSeconds)
 	jobStatusIndex := rand.IntN(len(possibleStatus))
-	// fmt.Printf("Job Status: %v", jobStatus)
 
 	jobStatusStr, jobStatusBool := DescribeJobStatus(possibleStatus[jobStatusIndex])
 	if jobStatusBool {
 		fmt.Println(jobStatusStr)
 	} else {
-		fmt.Println("Error: Job status could not be found. Workername, JobStatus must be non-empty strings")
+		fmt.Println("Error: Job status could not be found. JobStatus must be non-empty string")
 	}
 
 	workerDurationStr, workerDurationBool := GetWorkerDuration(workerName, intervalSeconds)
