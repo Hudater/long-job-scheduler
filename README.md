@@ -22,7 +22,7 @@ go run ./cmd/scheduler
 - [x] 2. Constants + formatting
 - [x] 3. Conditionals
 - [x] 4. Functions
-- [ ] 5. Structs
+- [x] 5. Structs
 - [ ] 6. Interfaces
 - [ ] 7. Errors
 - [ ] 8. Loops

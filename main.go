@@ -5,6 +5,13 @@ import (
 	"math/rand/v2"
 )
 
+type Job struct {
+	Name string
+	Interval int
+	MaxDuration int
+	Status string
+}
+
 const (
 	jobStatusPending = "StatusPending"
 	jobStatusRunning = "StatusRunning"
@@ -12,39 +19,46 @@ const (
 )
 
 func main() {
-	var intervalSeconds int
-	workerName := "WorkerOne"
 
 	possibleStatus := []string{
 		jobStatusPending,
 		jobStatusRunning,
 		jobStatusDone,
 	}
-	
-	// random values to proceed
-	intervalSeconds = rand.IntN(100)
+
+	intervalSeconds := rand.IntN(100)
+	maxDurationSeconds := rand.IntN(1000)
 	jobStatusIndex := rand.IntN(len(possibleStatus))
 
-	jobStatusStr, jobStatusBool := DescribeJobStatus(possibleStatus[jobStatusIndex])
+	jobInstance := Job{
+		Name: "Job_Struct_1",
+		Interval: intervalSeconds,
+		MaxDuration: maxDurationSeconds,
+		Status: possibleStatus[jobStatusIndex],
+	}
+	
+	// fmt.Println(jobInstance)
+
+	jobStatusStr, jobStatusBool := jobInstance.DescribeJobStatus()
 	if jobStatusBool {
 		fmt.Println(jobStatusStr)
 	} else {
 		fmt.Println("Error: Job status could not be found. JobStatus must be non-empty string")
 	}
 
-	workerDurationStr, workerDurationBool := GetWorkerDuration(workerName, intervalSeconds)
-	if workerDurationBool {
-		fmt.Println(workerDurationStr)
+	jobDurationStr, jobDurationBool := jobInstance.DescribeJobDuration()
+	if jobDurationBool {
+		fmt.Println(jobDurationStr)
 	} else {
-		fmt.Println("Error: Worker duration could not be found. Interval must be non-zero positive integer")
+		fmt.Println("Error: Job duration could not be found. Interval must be non-zero positive integer")
 	}
 }
 
-func DescribeJobStatus(jobStatus string) (string, bool) {
-	if jobStatus == "" {
+func (j Job) DescribeJobStatus() (string, bool) {
+	if j.Status == "" {
 		return "", false
 	}
-	switch jobStatus {
+	switch j.Status {
 	case jobStatusPending:
 		return "Job Pending", true
 	case jobStatusRunning:
@@ -56,10 +70,10 @@ func DescribeJobStatus(jobStatus string) (string, bool) {
 	}
 }
 
-func GetWorkerDuration(workerName string, intervalSeconds int) (string, bool) {
-	if intervalSeconds <= 0 || workerName == "" {
+func (j Job) DescribeJobDuration() (string, bool) {
+	if j.Interval <= 0 || j.Name == "" {
 		return "", false
 	}
-	workerDurationFormattedString := fmt.Sprintf("Worker '%v' ran for '%v' seconds", workerName, intervalSeconds)
-	return workerDurationFormattedString, true
+	jobDurationFormattedString := fmt.Sprintf("Job named '%v' ran for '%v' seconds", j.Name, j.Interval)
+	return jobDurationFormattedString, true
 }

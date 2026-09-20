@@ -1,30 +1,46 @@
 # long-job-scheduler
 
-A job scheduler built one chapter at a time alongside boot.dev's Learn Go course. The list below is the whole requirement.
+A local cron clone, built one chapter at a time alongside boot.dev's Learn Go course. Single process. No network, no isolation, no remote job fetch. Not a GitHub Actions runner, just cron with fake scripts.
 
-## The 16 increments
+## What a job is
 
-1. **Variables.** Hardcode a fake job: name, interval (int seconds), status (string). Print it with fmt.Println. No functions yet, just var declarations and zero values.
-2. **Constants + formatting.** Define job status as constants (StatusPending, StatusRunning, StatusDone, as strings or ints, your call). Use fmt.Printf/Sprintf to format the status line instead of default printing.
-3. **Conditionals.** Decide what to print based on status: pending prints "waiting", running prints "in progress", and so on. Validate interval > 0, else print an error message. No error type yet, just a string check.
-4. **Functions.** Extract job creation and status printing into functions. NewJobDescription(name string, interval int) string or similar. Practice multiple return values here, maybe (description string, valid bool).
-5. **Structs.** The real model starts. Job struct { Name string; Interval int; Status string } with methods like (j Job) Describe() string. This replaces the loose variables from chapters 1-4.
-6. **Interfaces.** Define Task interface { Run() error } and two or three concrete types: PrintTask, SleepTask, maybe a fake HTTPTask that just prints a URL. Job now holds a Task field. This is what lets job types vary later.
-7. **Errors.** Task.Run() returns real errors now. Wrap them with fmt.Errorf("task %s failed: %w", name, err). Add a custom error type if useful, say TaskFailedError with the job name embedded. Practice errors.Is/As in whatever runs the job.
-8. **Loops.** Write the scheduler tick as a for loop that walks through jobs once and runs whichever are due. Practice range, break and continue for skip conditions like disabled jobs.
-9. **Slices.** Replace hardcoded jobs with []Job. Add and remove jobs from the slice. Practice append, slicing tricks, maybe sorting by interval with sort.Slice.
-10. **Maps.** Index jobs by ID or name (map[string]Job) so lookup and cancel-by-name are O(1). Keep the slice too as the insertion-order list. Good excuse to reconcile both.
-11. **Pointers.** Jobs need mutable state, status changes after running, so switch to map[string]*Job or []*Job. This is the chapter where value vs pointer semantics actually bite.
-12. **Packages and modules.** Split into real packages: task/, job/, scheduler/, cmd/. Set up go.mod properly. This is where it stops being a single main.go. JSON persistence lands here too: jobs.json via encoding/json plus os.ReadFile/os.WriteFile, loaded at boot and saved on change, so jobs survive restarts.
-13. **Channels.** Replace the single-threaded loop-tick scheduler with goroutines. A dispatcher sends due jobs on a channel, worker goroutines consume and run them, results and errors come back on another channel.
-14. **Mutexes.** The job map is now touched by multiple goroutines, the scheduler reads while workers write status back. Add a sync.Mutex or sync.RWMutex around the shared map. Run with -race first and watch it catch the race before you fix it.
-15. **Generics.** Write a generic Queue[T any] or Result[T any] instead of the channel just being chan Job. Or a generic retry-with-backoff function that works over any function returning (T, error).
-16. **Enums.** Go back and redo Status with Go's iota enum pattern instead of the chapter 2 string constants. Small satisfying refactor that shows why the earlier hack was a hack.
+One entity: `Job`. No separate "worker" concept until chapter 13 where a goroutine pulls jobs off a channel.
+
+A Job has:
+
+- Name
+- Interval, how often it runs
+- MaxDuration, how long it's allowed to run before it counts as failed
+- Status. Comes out of a state machine driven by elapsed time against Interval and MaxDuration: pending before it starts, running while under MaxDuration, then done or failed depending on outcome.
+- A Task it executes, arrives in chapter 6 through an interface
+
+Status is a fixed, closed set of values. Treat it as an enum from the start, even before chapter 16 formalizes it with `iota`.
+
+## Chapters: concepts, not signatures
+
+Each chapter proves out one Go concept against the Job model above. Function and method names aren't contracts, the concept is what matters. Every increment has to compile and run before the next one starts.
+
+1. Variables. One hardcoded job as loose variables: name, interval, status. Print it.
+2. Constants and formatting. Status values become constants. `Printf`/`Sprintf` for output.
+3. Conditionals. Branch on status for what message to print. Check interval and MaxDuration with plain `if` statements, no error type yet.
+4. Functions. Pull job description and status logic into functions that take the job's data as arguments. Practice multiple return values, something like `(string, bool)` for a validity flag.
+5. Structs. The loose data becomes a real `Job` struct. Methods replace free functions where that fits, `(j Job) Describe() string`.
+6. Interfaces. `Task interface { Run() error }`, with a few implementations: PrintTask, SleepTask, a fake HTTPTask. Job holds a Task.
+7. Errors. `Task.Run()` returns real errors. Wrap with `%w`, add a custom error type if it earns its keep, practice `errors.Is`/`errors.As`.
+8. Loops. A scheduler tick: loop over jobs, run whichever are due. `range`, `break`/`continue` for skip conditions.
+9. Slices. Jobs live in `[]Job`. Add and remove, sort by interval.
+10. Maps. `map[string]Job` for lookup by name, alongside or instead of the slice.
+11. Pointers. Status has to mutate after a run, so jobs become `[]*Job` or `map[string]*Job`. Value versus pointer semantics stop being theoretical here.
+12. Packages and modules. Split into `task/`, `job/`, `scheduler/`, `cmd/`, with a proper `go.mod`. Add JSON persistence, `jobs.json` through `encoding/json` and `os.ReadFile`/`os.WriteFile`, so jobs survive a restart.
+13. Channels. The worker concept shows up for real: a dispatcher goroutine sends due jobs on a channel, worker goroutines consume and run them, results and errors come back on another channel.
+14. Mutexes. Multiple goroutines now touch the shared job map. `sync.Mutex` or `sync.RWMutex`. Run with `-race` first and watch it catch the problem before fixing it.
+15. Generics. A generic `Queue[T any]` or `Result[T any]`, or a generic retry-with-backoff over any `func() (T, error)`.
+16. Enums. Status gets rebuilt with Go's `iota` pattern, replacing the chapter 2 string constants.
 
 ## Ground rules
 
-- Stdlib only. No external dependencies for the whole project.
-- Tasks are simulated and stay in memory. PrintTask prints, SleepTask sleeps, HTTPTask prints a URL. Nothing touches the network and nothing spawns processes.
-- One main.go, rewritten in place, until chapter 12. No main_chN.go files.
-- The time package is fair game where the scheduler needs it (Now, Duration, Ticker). Everything else in an increment comes from its chapter.
-- Each increment has to run before the next one starts.
+- Stdlib only, no external dependencies.
+- Tasks are simulated and stay in memory. PrintTask prints, SleepTask sleeps, HTTPTask prints a URL. No real network calls, no spawned processes.
+- One `main.go`, rewritten in place, until the chapter 12 package split. No `main_chN.go` files.
+- `time` is fair game wherever the scheduler needs it (`Now`, `Duration`, `Ticker`), regardless of chapter.
+- Each increment has to compile and run before the next one starts.
