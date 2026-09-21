@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
-	"time"
 	"slices"
+	"time"
 )
 
 type Job struct {
@@ -137,7 +137,7 @@ func (ht HttpTask) Run() error {
 		httpMethodTrace,
 	}
 
-	if ht.httpUrl == "" || !slices.Contains(possibleHttpMethods, ht.httpMethod){
+	if ht.httpUrl == "" || !slices.Contains(possibleHttpMethods, ht.httpMethod) {
 		return errors.New("Empty HTTP Task string or Invalid HTTP Method")
 	}
 	fmt.Printf("Performing HTTP %v at URL: %v", ht.httpMethod, ht.httpUrl)
