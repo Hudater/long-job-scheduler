@@ -13,6 +13,7 @@ type Job struct {
 	Interval    int
 	MaxDuration int
 	Status      string
+	Task        Task
 }
 
 const (
@@ -47,9 +48,8 @@ func main() {
 		Interval:    intervalSeconds,
 		MaxDuration: maxDurationSeconds,
 		Status:      possibleStatus[jobStatusIndex],
+		Task:        HttpTask{httpUrl: "https://stopjava.com", httpMethod: "GET"},
 	}
-
-	// fmt.Println(jobInstance)
 
 	jobStatusStr, jobStatusBool := jobInstance.DescribeJobStatus()
 	if jobStatusBool {
@@ -63,6 +63,12 @@ func main() {
 		fmt.Println(jobDurationStr)
 	} else {
 		fmt.Println("Error: Job duration could not be found. Interval must be non-zero positive integer")
+	}
+
+	if err := jobInstance.Task.Run(); err != nil {
+		fmt.Println("Error: PrintTask errored out. debug that")
+	} else {
+		fmt.Printf("I don't need it here since I already print in the implementation but leaving it here for the spirit of it")
 	}
 }
 
@@ -138,8 +144,8 @@ func (ht HttpTask) Run() error {
 	}
 
 	if ht.httpUrl == "" || !slices.Contains(possibleHttpMethods, ht.httpMethod) {
-		return errors.New("Empty HTTP Task string or Invalid HTTP Method")
+		return errors.New("Empty HTTP Task string or Invalid HTTP Method\n")
 	}
-	fmt.Printf("Performing HTTP %v at URL: %v", ht.httpMethod, ht.httpUrl)
+	fmt.Printf("Performing HTTP %v at URL: %v\n", ht.httpMethod, ht.httpUrl)
 	return nil
 }
