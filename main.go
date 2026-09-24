@@ -48,14 +48,13 @@ func main() {
 		Interval:    intervalSeconds,
 		MaxDuration: maxDurationSeconds,
 		Status:      possibleStatus[jobStatusIndex],
-		Task:        HttpTask{httpUrl: "https://stopjava.com", httpMethod: "GEaT"},
+		Task:        HttpTask{httpUrl: "https://stopjava.com", httpMethod: "GET"},
 	}
 
 	jobStatusStr, jobStatusErr := jobInstance.DescribeJobStatus()
 	if jobStatusErr == nil {
 		fmt.Println(jobStatusStr)
 	} else {
-		// fmt.Println("Error: Job status could not be found. JobStatus must be non-empty string")
 		fmt.Println(jobStatusErr)
 	}
 
@@ -63,24 +62,19 @@ func main() {
 	if jobDurationErr == nil {
 		fmt.Println(jobDurationStr)
 	} else {
-		// fmt.Println("Error: Job duration could not be found. Interval must be non-zero positive integer")
 		fmt.Println(jobDurationErr)
 	}
 
 	if err := jobInstance.Task.Run(); err != nil {
-		// fmt.Println("Error: PrintTask errored out. debug that")
 		fmt.Println(err)
 	} else {
-		fmt.Printf("I don't need it here since I already print in the implementation but leaving it here for the spirit of it")
+		fmt.Printf("I don't need it here since I already print in the implementation but leaving it here for the spirit of it\n")
 	}
-	// else {
-	// 	fmt.Printf("I don't need it here since I already print in the implementation but leaving it here for the spirit of it")
-	// }
 }
 
 func (j Job) DescribeJobStatus() (string, error) {
 	if j.Status == "" {
-		return "", errors.New("Empty Job Status")
+		return "", errors.New("empty job status")
 	}
 	switch j.Status {
 	case jobStatusPending:
@@ -95,10 +89,13 @@ func (j Job) DescribeJobStatus() (string, error) {
 }
 
 func (j Job) DescribeJobDuration() (string, error) {
-	if j.Interval <= 0 || j.Name == "" {
-		return "", errors.New("Job Interval or Job Name are empty")
+	if j.Interval <= 0 {
+		return "", fmt.Errorf("job interval %v is invalid. job interval must be a positive integer", j.Interval)
 	}
-	jobDurationFormattedString := fmt.Sprintf("Job named '%v' ran for '%v' seconds", j.Name, j.Interval)
+	if j.Name == "" {
+		return "", fmt.Errorf("job Name is empty")
+	}
+	jobDurationFormattedString := fmt.Sprintf("job named '%v' ran for '%v' seconds", j.Name, j.Interval)
 	return jobDurationFormattedString, nil
 }
 
@@ -112,7 +109,7 @@ type PrintTask struct {
 
 func (pt PrintTask) Run() error {
 	if pt.printString == "" {
-		return errors.New("Empty Print string")
+		return errors.New("empty print string")
 	}
 	fmt.Println(pt.printString)
 	return nil
@@ -124,7 +121,7 @@ type SleepTask struct {
 
 func (st SleepTask) Run() error {
 	if st.sleepDurationSec <= 0 {
-		return errors.New("Sleep duration must be positive integer")
+		return errors.New("sleep duration must be positive integer")
 	}
 	fmt.Printf("Sleeping for %v seconds", st.sleepDurationSec)
 	time.Sleep(time.Duration(st.sleepDurationSec) * time.Second)
@@ -149,8 +146,11 @@ func (ht HttpTask) Run() error {
 		httpMethodTrace,
 	}
 
-	if ht.httpUrl == "" || !slices.Contains(possibleHttpMethods, ht.httpMethod) {
-		return errors.New("Empty HTTP Task string or Invalid HTTP Method\n")
+	if ht.httpUrl == "" {
+		return errors.New("empty HTTP task string")
+	}
+	if !slices.Contains(possibleHttpMethods, ht.httpMethod) {
+		return fmt.Errorf("invalid HTTP method %v", ht.httpMethod)
 	}
 	fmt.Printf("Performing HTTP %v at URL: %v\n", ht.httpMethod, ht.httpUrl)
 	return nil
