@@ -48,52 +48,58 @@ func main() {
 		Interval:    intervalSeconds,
 		MaxDuration: maxDurationSeconds,
 		Status:      possibleStatus[jobStatusIndex],
-		Task:        HttpTask{httpUrl: "https://stopjava.com", httpMethod: "GET"},
+		Task:        HttpTask{httpUrl: "https://stopjava.com", httpMethod: "GEaT"},
 	}
 
-	jobStatusStr, jobStatusBool := jobInstance.DescribeJobStatus()
-	if jobStatusBool {
+	jobStatusStr, jobStatusErr := jobInstance.DescribeJobStatus()
+	if jobStatusErr == nil {
 		fmt.Println(jobStatusStr)
 	} else {
-		fmt.Println("Error: Job status could not be found. JobStatus must be non-empty string")
+		// fmt.Println("Error: Job status could not be found. JobStatus must be non-empty string")
+		fmt.Println(jobStatusErr)
 	}
 
-	jobDurationStr, jobDurationBool := jobInstance.DescribeJobDuration()
-	if jobDurationBool {
+	jobDurationStr, jobDurationErr := jobInstance.DescribeJobDuration()
+	if jobDurationErr == nil {
 		fmt.Println(jobDurationStr)
 	} else {
-		fmt.Println("Error: Job duration could not be found. Interval must be non-zero positive integer")
+		// fmt.Println("Error: Job duration could not be found. Interval must be non-zero positive integer")
+		fmt.Println(jobDurationErr)
 	}
 
 	if err := jobInstance.Task.Run(); err != nil {
-		fmt.Println("Error: PrintTask errored out. debug that")
+		// fmt.Println("Error: PrintTask errored out. debug that")
+		fmt.Println(err)
 	} else {
 		fmt.Printf("I don't need it here since I already print in the implementation but leaving it here for the spirit of it")
 	}
+	// else {
+	// 	fmt.Printf("I don't need it here since I already print in the implementation but leaving it here for the spirit of it")
+	// }
 }
 
-func (j Job) DescribeJobStatus() (string, bool) {
+func (j Job) DescribeJobStatus() (string, error) {
 	if j.Status == "" {
-		return "", false
+		return "", errors.New("Empty Job Status")
 	}
 	switch j.Status {
 	case jobStatusPending:
-		return "Job Pending", true
+		return "Job Pending", nil
 	case jobStatusRunning:
-		return "Job Running", true
+		return "Job Running", nil
 	case jobStatusDone:
-		return "Job Done", true
+		return "Job Done", nil
 	default:
-		return "", false
+		return "", fmt.Errorf("%v is not a valid job status", j.Status)
 	}
 }
 
-func (j Job) DescribeJobDuration() (string, bool) {
+func (j Job) DescribeJobDuration() (string, error) {
 	if j.Interval <= 0 || j.Name == "" {
-		return "", false
+		return "", errors.New("Job Interval or Job Name are empty")
 	}
 	jobDurationFormattedString := fmt.Sprintf("Job named '%v' ran for '%v' seconds", j.Name, j.Interval)
-	return jobDurationFormattedString, true
+	return jobDurationFormattedString, nil
 }
 
 type Task interface {
