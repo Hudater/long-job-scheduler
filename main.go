@@ -8,29 +8,7 @@ import (
 	"time"
 )
 
-type Job struct {
-	Name        string
-	Interval    int
-	MaxDuration int
-	Status      string
-	Task        Task
-}
-
-const (
-	jobStatusPending  = "StatusPending"
-	jobStatusRunning  = "StatusRunning"
-	jobStatusDone     = "StatusDone"
-	httpMethodGet     = "GET"
-	httpMethodPost    = "POST"
-	httpMethodPut     = "PUT"
-	httpMethodPatch   = "PATCH"
-	httpMethodDelete  = "DELETE"
-	httpMethodHead    = "HEAD"
-	httpMethodOptions = "OPTIONS"
-	httpMethodConnect = "CONNECT"
-	httpMethodTrace   = "TRACE"
-)
-
+// main, wire it up
 func main() {
 
 	possibleStatus := []string{
@@ -72,6 +50,23 @@ func main() {
 	}
 }
 
+
+// JOB section
+
+type Job struct {
+	Name        string
+	Interval    int
+	MaxDuration int
+	Status      string
+	Task        Task
+}
+
+const (
+	jobStatusPending  = "StatusPending"
+	jobStatusRunning  = "StatusRunning"
+	jobStatusDone     = "StatusDone"
+)
+
 func (j Job) DescribeJobStatus() (string, error) {
 	if j.Status == "" {
 		return "", errors.New("empty job status")
@@ -98,6 +93,8 @@ func (j Job) DescribeJobDuration() (string, error) {
 	jobDurationFormattedString := fmt.Sprintf("job named '%v' ran for '%v' seconds", j.Name, j.Interval)
 	return jobDurationFormattedString, nil
 }
+
+// TASK section
 
 type Task interface {
 	Run() error
@@ -134,6 +131,19 @@ type HttpTask struct {
 }
 
 func (ht HttpTask) Run() error {
+	
+	const (
+		httpMethodGet     = "GET"
+		httpMethodPost    = "POST"
+		httpMethodPut     = "PUT"
+		httpMethodPatch   = "PATCH"
+		httpMethodDelete  = "DELETE"
+		httpMethodHead    = "HEAD"
+		httpMethodOptions = "OPTIONS"
+		httpMethodConnect = "CONNECT"
+		httpMethodTrace   = "TRACE"
+	)
+
 	possibleHttpMethods := []string{
 		httpMethodGet,
 		httpMethodPost,
